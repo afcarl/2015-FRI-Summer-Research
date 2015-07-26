@@ -22,6 +22,67 @@ TIME_LIMIT = 1000 # define when to stop the loop
 def f(chromosome):
 
 
+# cut a mesh using bisect
+def cut_mesh(X, Y, Z):
+	# change to edit mode
+	bpy.ops.object.mode_set(mode='EDIT')
+
+	#						SEPARATING INTO PARTS
+	#
+	# 							**IMPORTANT**
+	#
+	#	First perform bisect, hide the loop (H), hover over the half you want to
+	#	select, select a link (L), then finally unhide everything (option + H).
+	#	You can then use Separate tool (P) via Selection to separate the two
+	#	parts.
+
+	# bisect the model
+	bpy.ops.mesh.bisect(plane_co=(-2.38322, 5.2225, 14.4246),
+						plane_no=(0.931226, 0.363737, 0.022675),
+						xstart=225,
+						xend=238,
+						ystart=393,
+						yend=60)
+
+	# hide the loop
+	bpy.ops.mesh.hide(unselected=False)
+
+	# select parts via select_linked_pick
+	# this part of the object will be labeled "OBJECT.001"
+	# always pick index=0 since every object is guaranteed to have it
+	bpy.ops.mesh.select_linked_pick(deselect=False, index=0)
+
+	# reveal the loop (at this point, only "OBJECT.001" is selected)
+	bpy.ops.mesh.reveal()
+
+	# Separate via Selection
+	bpy.ops.mesh.separate(type='SELECTED')
+
+	# change to object mode
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	# deselect all objects
+	bpy.ops.object.select_all(action='DESELECT')
+
+	#				**USEFUL!**
+	# Below commented script changes an object's name
+	# bpy.context.space_data.context = 'DATA'
+	# bpy.context.object.data.name = "Cube!"
+
+	# select one of the parts
+	bpy.ops.object.select_pattern(pattern="OBJECT")
+
+	# move the selected part
+	bpy.ops.transform.translate(value=(-2.55165, -1.43464, -0.494163),
+								constraint_axis=(False, False, False),
+								constraint_orientation='GLOBAL',
+								mirror=False,
+								proportional='DISABLED',
+								proportional_edit_falloff='SMOOTH',
+								proportional_size=1)
+# end of [def cut_mesh(X, Y, Z):]
+
+
 # generate initial population
 def initial_population(n_population):
     population = []
