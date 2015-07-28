@@ -10,16 +10,28 @@
 
 import random
 import math
+import bpy
+import bmesh
 
-N_POPULATION = 10 # desired population size
-P_MUTATION = 0.1 # probability of mutation
-P_CROSSOVER = 0.1 # probability of crossover
+X_MIN = 0			# minimum angle (0)
+X_MAX = math.pi*2	# maximum angle (2π)
+N_POPULATION = 10 	# desired population size
+P_MUTATION = 0.1 	# probability of mutation
+P_CROSSOVER = 0.1 	# probability of crossover
 CHROMOSOME_SIZE = 8 # define the length of binary string
-TIME_LIMIT = 1000 # define when to stop the loop
+TIME_LIMIT = 1000 	# define when to stop the loop
+FILE_PATH = "" 		# import file path
 
-# fitness function that returns the amount of support material
-# This is where most of Blender works are done
-def f(chromosome):
+# import an STL file
+def import_mesh():
+	bpy.ops.import_mesh.stl(filepath=FILE_PATH)
+
+# rotate by modifying Euler angles [x, y, z]
+def rotate_mesh(chromosome):
+	# initialize every Euler angles to 0
+	bpy.context.object.rotation_euler[0] = 0
+	bpy.context.object.rotation_euler[1] = 0
+	bpy.context.object.rotation_euler[2] = 0
 
 
 # cut a mesh using bisect
@@ -27,14 +39,14 @@ def cut_mesh(X, Y, Z):
 	# change to edit mode
 	bpy.ops.object.mode_set(mode='EDIT')
 
-	#						SEPARATING INTO PARTS
+	#							SEPARATING INTO PARTS
 	#
-	# 							**IMPORTANT**
+	# 								**IMPORTANT**
 	#
-	#	First perform bisect, hide the loop (H), hover over the half you want to
-	#	select, select a link (L), then finally unhide everything (option + H).
-	#	You can then use Separate tool (P) via Selection to separate the two
-	#	parts.
+	#	First perform bisect, hide the loop (H), hover over the half you want
+	#	to select, select a link (L), then finally unhide everything (option
+	#	+ H). You can then use Separate tool (P) via Selection to separate the
+	#	two parts.
 
 	# bisect the model
 	bpy.ops.mesh.bisect(plane_co=(-2.38322, 5.2225, 14.4246),
@@ -82,6 +94,12 @@ def cut_mesh(X, Y, Z):
 								proportional_size=1)
 # end of [def cut_mesh(X, Y, Z):]
 
+# fitness function that returns the amount of support material
+# This is where most of Blender works are done
+def f(chromosome):
+
+
+# 					**** GENETIC ALGORITHM FROM HERE ****
 
 # generate initial population
 def initial_population(n_population):
