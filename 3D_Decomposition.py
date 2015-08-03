@@ -13,26 +13,27 @@ import math
 import bpy
 import bmesh
 
-X_MIN = 0			# minimum angle (0)
-X_MAX = math.pi*2	# maximum angle (2π)
-N_POPULATION = 10 	# desired population size
-P_MUTATION = 0.1 	# probability of mutation
-P_CROSSOVER = 0.1 	# probability of crossover
-CHROMOSOME_SIZE = 8 # define the length of binary string
-TIME_LIMIT = 1000 	# define when to stop the loop
-FILE_PATH = "" 		# import file path
+X_MIN = 0						# minimum angle (0)
+X_MAX = math.pi*2				# maximum angle (2π)
+N_POPULATION = 10 				# desired population size
+P_MUTATION = 0.1 				# probability of mutation
+P_CROSSOVER = 0.1 				# probability of crossover
+CHROMOSOME_SIZE = 8 			# define the length of binary string
+TIME_LIMIT = 1000 				# define when to stop the loop
+FILE_PATH = "" 					# import file path
 
 # import an STL file
 def import_mesh():
 	bpy.ops.import_mesh.stl(filepath=FILE_PATH)
 
-# rotate by modifying Euler angles [x, y, z]
+# rotate by modifying Euler angles [x, y, z] using binary string chromosome
 def rotate_mesh(chromosome):
 	# initialize every Euler angles to 0
 	bpy.context.object.rotation_euler[0] = 0
 	bpy.context.object.rotation_euler[1] = 0
 	bpy.context.object.rotation_euler[2] = 0
-
+	angle = inContext(X_MIN, X_MAX, toDecimal(chromosome))
+	bpy.context.object.rotation_euler[1] = angle
 
 # cut a mesh using bisect
 def cut_mesh(X, Y, Z):
@@ -97,7 +98,15 @@ def cut_mesh(X, Y, Z):
 # fitness function that returns the amount of support material
 # This is where most of Blender works are done
 def f(chromosome):
-
+	# rotate the mesh
+	rotate_mesh(chromosome)
+	# check overhang
+	print_3d = bpy.context.scene.print_3d
+	angle_overhang = (math.pi / 2.0) - print_3d.angle_overhang
+	z_down = Vector((0, 0, -1.0))
+	z_down_angle = z_down.angle
+	faces_overhang = [ele.index for ele in bm.faces
+					  if z_down_angle(ele.normal) < angle_overhang]
 
 # 					**** GENETIC ALGORITHM FROM HERE ****
 
