@@ -12,19 +12,58 @@ import random
 import math
 import bpy
 import bmesh
+from mathutils import Vector
 
 X_MIN = 0						# minimum angle (0)
 X_MAX = math.pi*2				# maximum angle (2π)
+A_OVERHANG = math.pi/4			# overhang angle (π/4)
 N_POPULATION = 10 				# desired population size
 P_MUTATION = 0.1 				# probability of mutation
 P_CROSSOVER = 0.1 				# probability of crossover
 CHROMOSOME_SIZE = 8 			# define the length of binary string
-TIME_LIMIT = 1000 				# define when to stop the loop
-FILE_PATH = "" 					# import file path
+TIME_LIMIT = 100 				# define when to stop the loop
+FILE_PATH = "./t.stl" 			# import file path
 
 # import an STL file
 def import_mesh():
 	bpy.ops.import_mesh.stl(filepath=FILE_PATH)
+
+# bmesh_copy_from_object
+# *from https://github.com/jaredly/blender-addons/blob/master/
+# 		object_print3d_utils/mesh_helpers.py
+def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifiers=False):
+    """
+    Returns a transformed, triangulated copy of the mesh
+    """
+
+    assert(obj.type == 'MESH')
+
+    if apply_modifiers and obj.modifiers:
+        import bpy
+        me = obj.to_mesh(bpy.context.scene, True, 'PREVIEW', calc_tessface=False)
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        bpy.data.meshes.remove(me)
+        del bpy
+    else:
+        me = obj.data
+        if obj.mode == 'EDIT':
+            bm_orig = bmesh.from_edit_mesh(me)
+            bm = bm_orig.copy()
+        else:
+            bm = bmesh.new()
+            bm.from_mesh(me)
+
+    # TODO. remove all customdata layers.
+    # would save ram
+
+    if transform:
+        bm.transform(obj.matrix_world)
+
+    if triangulate:
+        bmesh.ops.triangulate(bm, faces=bm.faces, use_beauty=True)
+
+    return bm
 
 # rotate by modifying Euler angles [x, y, z] using binary string chromosome
 def rotate_mesh(chromosome):
@@ -98,17 +137,32 @@ def cut_mesh(X, Y, Z):
 # fitness function that returns the amount of support material
 # This is where most of Blender works are done
 def f(chromosome):
-	# rotate the mesh
-	rotate_mesh(chromosome)
-	# check overhang
-	print_3d = bpy.context.scene.print_3d
-	angle_overhang = (math.pi / 2.0) - print_3d.angle_overhang
-	z_down = Vector((0, 0, -1.0))
-	z_down_angle = z_down.angle
-	faces_overhang = [ele.index for ele in bm.faces
-					  if z_down_angle(ele.normal) < angle_overhang]
+    # import mesh
+    import_mesh()
+	# set overhang angle
+    bpy.context.scene.print_3d.angle_overhang = A_OVERHANG
+    # rotate the mesh
+    rotate_mesh(chromosome)
+    # check faces don't overhang past a certain angle
+    obj = bpy.context.active_object
+    print_3d = bpy.context.scene.print_3d
+    angle_overhang = (math.pi / 2.0) - print_3d.angle_overhang
+    bm = bmesh_copy_from_object(obj, transform=True, triangulate=False)
+    bm.normal_update()
+    z_down_angle = Vector((0, 0, -1.0)).angle
+    faces_overhang = [ele.index for ele in bm.faces
+                        if z_down_angle(ele.normal) < angle_overhang]
+    bpy.ops.object.delete()
+    return len(faces_overhang)
 
 # 					**** GENETIC ALGORITHM FROM HERE ****
+
+# loop stops when the condition is not met
+def loop_condition_is_met(bestGene, timeCounter):
+    idealSolution = 0
+    precision = 0.001
+    return abs(idealSolution - f(bestGene)) > precision and\
+            timeCounter < TIME_LIMIT
 
 # generate initial population
 def initial_population(n_population):
@@ -175,15 +229,17 @@ def uniform_crossover(adam, eve):
 
 # Genetic Algorithm main function
 def genetic_algorithm():
+	# delete the default cube
+    bpy.ops.object.delete()
     population = initial_population(N_POPULATION)
     bestGene = "XXXXXXXX" # initially best is nobody
     timeCounter = 0
-    while timeCounter < TIME_LIMIT:
+    while loop_condition_is_met(bestGene, timeCounter):
         for chromosome in population:
-            if bestGene == "XXXXXXXX" or f(chromosome) > f(bestGene):
+            if bestGene == "XXXXXXXX" or f(chromosome) < f(bestGene):
                 bestGene = chromosome
         children = []
-        for index in range(N_POPULATION/2):
+        for index in range(int(N_POPULATION/2)):
             adam, eve = random_selection(population)
             child_1, child_2 = uniform_crossover(adam, eve)
             children.append(child_1)
@@ -191,7 +247,9 @@ def genetic_algorithm():
         population = children
         timeCounter += 1
     # print result
-    print "Genetic Algorithm: " + str((bestGene, round(f(bestGene), 3)))
+    print("GA Optimum: " + str((bestGene, f(bestGene))))
+    bestGene_inContext = inContext(X_MIN, X_MAX, toDecimal(bestGene))
+    print("Best Rotation Angle: " + str(bestGene_inContext))
 
 # execute
 genetic_algorithm()
