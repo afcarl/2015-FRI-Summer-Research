@@ -152,6 +152,7 @@ def f(chromosome):
     z_down_angle = Vector((0, 0, -1.0)).angle
     faces_overhang = [ele.index for ele in bm.faces
                         if z_down_angle(ele.normal) < angle_overhang]
+    bm.free()
     bpy.ops.object.delete()
     return len(faces_overhang)
 
