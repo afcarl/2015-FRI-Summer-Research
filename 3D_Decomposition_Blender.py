@@ -7,13 +7,11 @@
 # cutting instructions (cutting angle and coordinate of the cutting plane)
 # -- of which the length differs based on number of cuts. Lastly, all the cut
 # pieces are laid on the printing bed with their largest faces on the bottom.
-# THIS IS A PYTHON CODE FOR FREECAD CONSOLE
-
 
 import random
 import math
-import FreeCAD
-import Mesh
+import bpy
+import bmesh
 from mathutils import Vector
 
 X_MIN = 0						# minimum angle (0)
@@ -24,15 +22,11 @@ P_MUTATION = 0.1 				# probability of mutation
 P_CROSSOVER = 0.1 				# probability of crossover
 CHROMOSOME_SIZE = 8 			# define the length of binary string
 TIME_LIMIT = 100 				# define when to stop the loop
-# import file path
-FILE_PATH = "/Users/jinyeom/2015-FRI-Summer-Research/t.stl"
+FILE_PATH = "./t.stl" 			# import file path
 
 # import an STL file
 def import_mesh():
-	doc = FreeCAD.newDocument()
-	meshobj = doc.addObject("Mesh::Feature","New Mesh")
-	mesh = Mesh.insert("/Users/jinyeom/2015-FRI-Summer-Research/t.stl")
-	meshobj.Mesh = mesh
+	bpy.ops.import_mesh.stl(filepath=FILE_PATH)
 
 # bmesh_copy_from_object
 # *from https://github.com/jaredly/blender-addons/blob/master/
@@ -73,16 +67,94 @@ def bmesh_copy_from_object(obj, transform=True, triangulate=True, apply_modifier
 
 # rotate by modifying Euler angles [x, y, z] using binary string chromosome
 def rotate_mesh(chromosome):
+	# initialize every Euler angles to 0
+	bpy.context.object.rotation_euler[0] = 0
+	bpy.context.object.rotation_euler[1] = 0
+	bpy.context.object.rotation_euler[2] = 0
+	angle = inContext(X_MIN, X_MAX, toDecimal(chromosome))
+	bpy.context.object.rotation_euler[1] = angle
 
+# cut a mesh using bisect
+def cut_mesh(X, Y, Z):
+	# change to edit mode
+	bpy.ops.object.mode_set(mode='EDIT')
+
+	#							SEPARATING INTO PARTS
+	#
+	# 								**IMPORTANT**
+	#
+	#	First perform bisect, hide the loop (H), hover over the half you want
+	#	to select, select a link (L), then finally unhide everything (option
+	#	+ H). You can then use Separate tool (P) via Selection to separate the
+	#	two parts.
+
+	# bisect the model
+	bpy.ops.mesh.bisect(plane_co=(-2.38322, 5.2225, 14.4246),
+						plane_no=(0.931226, 0.363737, 0.022675),
+						xstart=225,
+						xend=238,
+						ystart=393,
+						yend=60)
+
+	# hide the loop
+	bpy.ops.mesh.hide(unselected=False)
+
+	# select parts via select_linked_pick
+	# this part of the object will be labeled "OBJECT.001"
+	# always pick index=0 since every object is guaranteed to have it
+	bpy.ops.mesh.select_linked_pick(deselect=False, index=0)
+
+	# reveal the loop (at this point, only "OBJECT.001" is selected)
+	bpy.ops.mesh.reveal()
+
+	# Separate via Selection
+	bpy.ops.mesh.separate(type='SELECTED')
+
+	# change to object mode
+	bpy.ops.object.mode_set(mode='OBJECT')
+
+	# deselect all objects
+	bpy.ops.object.select_all(action='DESELECT')
+
+	#				**USEFUL!**
+	# Below commented script changes an object's name
+	# bpy.context.space_data.context = 'DATA'
+	# bpy.context.object.data.name = "Cube!"
+
+	# select one of the parts
+	bpy.ops.object.select_pattern(pattern="OBJECT")
+
+	# move the selected part
+	bpy.ops.transform.translate(value=(-2.55165, -1.43464, -0.494163),
+								constraint_axis=(False, False, False),
+								constraint_orientation='GLOBAL',
+								mirror=False,
+								proportional='DISABLED',
+								proportional_edit_falloff='SMOOTH',
+								proportional_size=1)
+# end of [def cut_mesh(X, Y, Z):]
 
 # fitness function that returns the amount of support material
 # This is where most of Blender works are done
 def f(chromosome):
     # import mesh
     import_mesh()
+	# set overhang angle
+    bpy.context.scene.print_3d.angle_overhang = A_OVERHANG
     # rotate the mesh
     rotate_mesh(chromosome)
-
+    # check faces don't overhang past a certain angle
+    obj = bpy.context.active_object
+    print_3d = bpy.context.scene.print_3d
+    angle_overhang = (math.pi / 2.0) - print_3d.angle_overhang
+    bm = bmesh_copy_from_object(obj, transform=True, triangulate=False)
+    bm.normal_update()
+    z_down_angle = Vector((0, 0, -1.0)).angle
+    faces_overhang = [ele.index for ele in bm.faces
+                        if z_down_angle(ele.normal) < angle_overhang]
+    bm.free()
+    bpy.ops.object.delete()
+    return len(faces_overhang)
 
 # 					**** GENETIC ALGORITHM FROM HERE ****
 
