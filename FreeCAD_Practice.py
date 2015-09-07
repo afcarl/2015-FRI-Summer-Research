@@ -21,6 +21,11 @@ meshobj.Mesh = mesh
 doc.recompute()
 
 
-
-
-# rotate the model 
+# create a box object
+box = doc.addObject("Part::Box", "box")
+# create a placement object
+pl = FreeCAD.Placement()
+# rotate 45 degrees along z axis
+pl.Rotation = App.Rotation(45,0,0) # (z, y, x)?
+# assign the placement to
+myObj.Placement = pl
