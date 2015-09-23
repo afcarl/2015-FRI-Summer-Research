@@ -53,8 +53,15 @@ function createTwoCubes() {
 }
 
 function shapeGeneratorEvaluate(params, callback){
+    // create two cubes at different position
     var mesh = createCube(0, 0, 0, 10);
     var cube = createCube(5, 5, 5, 10);
+    // rotate mesh
+    var matrix = new Matrix3D();
+    matrix.rotationX(45);   // rotate around x-axis
+    matrix.rotationY(0);    // rotate around y-axis
+    matrix.rotationZ(0);    // rotate around z-axis
+    mesh.transform(matrix);
     // subtract cube from mesh
     mesh.subtract(cube, function(mesh) {
         var solid = Solid.make(mesh);
