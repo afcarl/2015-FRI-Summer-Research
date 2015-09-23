@@ -31,6 +31,16 @@ function createCube(x, y, z, size) {
     return mesh;
 }
 
+// create a triangle
+function createTriangle() {
+    var mesh = new Mesh3D();
+    mesh.triangle([0, 0, 0], [10, 0, 0], [5, 10, 0]);
+    mesh.triangle([5, 5, 10], [0, 0, 0], [5, 10, 0]);
+    mesh.triangle([5, 5, 10], [0, 0, 0], [10, 0, 0]);
+    mesh.triangle([5, 5, 10], [10, 0, 0], [5, 10, 0]);
+    return mesh;
+}
+
 // create two cubes in one mesh
 function createTwoCubes() {
     // create a cube using coordinates
@@ -52,19 +62,62 @@ function createTwoCubes() {
     return mesh;
 }
 
-function shapeGeneratorEvaluate(params, callback){
-    // create two cubes at different position
-    var mesh = createCube(0, 0, 0, 10);
-    var cube = createCube(5, 5, 5, 10);
-    // rotate mesh
-    var matrix = new Matrix3D();
-    matrix.rotationX(45);   // rotate around x-axis
-    matrix.rotationY(0);    // rotate around y-axis
-    matrix.rotationZ(0);    // rotate around z-axis
-    mesh.transform(matrix);
-    // subtract cube from mesh
-    mesh.subtract(cube, function(mesh) {
-        var solid = Solid.make(mesh);
-        callback(solid);
-    });
+// create T
+function createT() {
+    var mesh = new Mesh3D();
+    mesh.triangle([ -25.000000, 10.000000, 0.000000], [ -5.000000, 10.000000, 0.000000], [ -25.000000, 10.000000, 5.000000]);
+    mesh.triangle([ -25.000000, 10.000000, 5.000000], [ -5.000000, 10.000000, 0.000000], [ -5.000000, 10.000000, 5.000000]);
+    mesh.triangle([ -25.000000, 15.000000, 0.000000], [ -25.000000, 10.000000, 0.000000], [ -25.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -25.000000, 15.000000, 5.000000], [ -25.000000, 10.000000, 0.000000], [ -25.000000, 10.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 15.000000, 0.000000], [ -25.000000, 15.000000, 0.000000], [ -5.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 15.000000, 5.000000], [ -25.000000, 15.000000, 0.000000], [ -25.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 25.000000, 0.000000], [ -5.000000, 15.000000, 0.000000], [ -5.000000, 25.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 25.000000, 5.000000], [ -5.000000, 15.000000, 0.000000], [ -5.000000, 15.000000, 5.000000]);
+    mesh.triangle([ 0.000000, 25.000000, 0.000000], [ -5.000000, 25.000000, 0.000000], [ 0.000000, 25.000000, 5.000000]);
+    mesh.triangle([ 0.000000, 25.000000, 5.000000], [ -5.000000, 25.000000, 0.000000], [ -5.000000, 25.000000, 5.000000]);
+    mesh.triangle([ 0.000000, 0.000000, 0.000000], [ 0.000000, 25.000000, 0.000000], [ 0.000000, 0.000000, 5.000000]);
+    mesh.triangle([ 0.000000, 0.000000, 5.000000], [ 0.000000, 25.000000, 0.000000], [ 0.000000, 25.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 0.000000, 0.000000], [ 0.000000, 0.000000, 0.000000], [ -5.000000, 0.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 0.000000, 5.000000], [ 0.000000, 0.000000, 0.000000], [ 0.000000, 0.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 10.000000, 0.000000], [ -5.000000, 0.000000, 0.000000], [ -5.000000, 10.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 10.000000, 5.000000], [ -5.000000, 0.000000, 0.000000], [ -5.000000, 0.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 0.000000, 5.000000], [ 0.000000, 0.000000, 5.000000], [ -5.000000, 10.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 10.000000, 5.000000], [ 0.000000, 0.000000, 5.000000], [ -5.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -25.000000, 15.000000, 5.000000], [ -5.000000, 10.000000, 5.000000], [ -5.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -25.000000, 15.000000, 5.000000], [ -25.000000, 10.000000, 5.000000], [ -5.000000, 10.000000, 5.000000]);
+    mesh.triangle([ 0.000000, 0.000000, 5.000000], [ 0.000000, 25.000000, 5.000000], [ -5.000000, 15.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 15.000000, 5.000000], [ 0.000000, 25.000000, 5.000000], [ -5.000000, 25.000000, 5.000000]);
+    mesh.triangle([ -5.000000, 0.000000, 0.000000], [ -5.000000, 10.000000, 0.000000], [ 0.000000, 0.000000, 0.000000]);
+    mesh.triangle([ 0.000000, 0.000000, 0.000000], [ -5.000000, 10.000000, 0.000000], [ -5.000000, 15.000000, 0.000000]);
+    mesh.triangle([ 0.000000, 25.000000, 0.000000], [ -5.000000, 15.000000, 0.000000], [ -5.000000, 25.000000, 0.000000]);
+    mesh.triangle([ 0.000000, 25.000000, 0.000000], [ 0.000000, 0.000000, 0.000000], [ -5.000000, 15.000000, 0.000000]);
+    mesh.triangle([ -5.000000, 10.000000, 0.000000], [ -25.000000, 10.000000, 0.000000], [ -5.000000, 15.000000, 0.000000]);
+    mesh.triangle([ -5.000000, 15.000000, 0.000000], [ -25.000000, 10.000000, 0.000000], [ -25.000000, 15.000000, 0.000000]);
+    return mesh;
+}
+
+// create colonel model
+function createColonel() {
+    var mesh = new Mesh3D();
+
+    return mesh;
+}
+
+//
+// function shapeGeneratorEvaluate(params, callback){
+//     // create two cubes at different position
+//     var mesh = createCube(0, 0, 0, 10);
+//     var cube = createCube(5, 5, 5, 10);
+//     // rotate mesh
+//     var matrix = new Matrix3D();
+//     matrix.rotationX(45);   // rotate around x-axis
+//     matrix.rotationY(0);    // rotate around y-axis
+//     matrix.rotationZ(0);    // rotate around z-axis
+//     mesh.transform(matrix);
+//     // subtract cube from mesh and callback
+//     mesh.subtract(cube, function(mesh){callback(Solid.make(mesh));});
+// }
+
+function process() {
+    return Solid.make(createColonel());
 }
