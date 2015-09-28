@@ -3,7 +3,7 @@
 # written in MATLAB.
 #
 # clear all; close all; clc;
-#
+# 
 # data = importdata('bust2.obj');
 # vertices = data.data(1:36259, :);
 # faces = data.data(36260:end, :);
