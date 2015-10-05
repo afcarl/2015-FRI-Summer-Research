@@ -13,23 +13,8 @@ var Solid = Core.Solid;
 var Vector2D = Core.Vector2D;
 var Vector3D = Core.Vector3D;
 
-// create a cube
-function createCube(x, y, z, size) {
-    var mesh = new Mesh3D();
-    mesh.quad([x, y, z], [x, y+size, z],
-                [x+size, y+size, z], [x+size, y, z]);
-    mesh.quad([x, y, z], [x+size, y, z],
-                [x+size, y, z+size], [x, y, z+size]);
-    mesh.quad([x+size, y, z], [x+size, y+size, z],
-                [x+size, y+size, z+size], [x+size, y, z+size]);
-    mesh.quad([x, y, z], [x, y, z+size],
-                [x, y+size, z+size], [x, y+size, z]);
-    mesh.quad([x, y+size, z], [x, y+size, z+size],
-                [x+size, y+size, z+size], [x+size, y+size, z]);
-    mesh.quad([x, y, z+size], [x+size, y, z+size],
-                [x+size, y+size, z+size], [x, y+size, z+size]);
-    return mesh;
-}
+var cutSize = 100;
+var cutDistance = 200;
 
 // create a triangle
 function createTriangle() {
@@ -676,18 +661,53 @@ function createTree() {
     return mesh;
 }
 
-function shapeGeneratorEvaluate(params, callback){
+// create a cube
+function createCube(x, y, z, size) {
+    var mesh = new Mesh3D();
+    mesh.quad([x, y, z], [x, y+size, z],
+                [x+size, y+size, z], [x+size, y, z]);
+    mesh.quad([x, y, z], [x+size, y, z],
+                [x+size, y, z+size], [x, y, z+size]);
+    mesh.quad([x+size, y, z], [x+size, y+size, z],
+                [x+size, y+size, z+size], [x+size, y, z+size]);
+    mesh.quad([x, y, z], [x, y, z+size],
+                [x, y+size, z+size], [x, y+size, z]);
+    mesh.quad([x, y+size, z], [x, y+size, z+size],
+                [x+size, y+size, z+size], [x+size, y+size, z]);
+    mesh.quad([x, y, z+size], [x+size, y, z+size],
+                [x+size, y+size, z+size], [x, y+size, z+size]);
+    return mesh;
+}
+
+function sliceOne() {
     // create a tree and a cube at different position
     var treeOne = createTree();
-    var treeTwo = createTree();
     // change x coordinate [0] from -10 to -65
-    var cube = createCube(-10,-100,-20,100);
-    // // rotate mesh
-    // var matrix = new Matrix3D();
-    // matrix.rotationX(0);    // rotate around x-axis
-    // matrix.rotationY(0);    // rotate around y-axis
-    // matrix.rotationZ(0);    // rotate around z-axis
-    // mesh.transform(matrix);
+    var cubeOne = createCube(-40,-100,-20,cutSize);
     // subtract cube from mesh and callback
-    mesh.subtract(cube, function(mesh){callback(Solid.make(mesh));});
+    treeOne.subtract(cubeOne, function(mesh){
+        return mesh;
+    });
+}
+
+function sliceTwo() {
+    var treeTwo = createTree();
+    var cubeTwo = createCube(-40-cutSize,-100,-20,cutSize);
+    // matrix for transition of treeTwo
+    var matrix = new Matrix3D();
+    matrix.translation([cutDistance, 0, 0]);
+    treeTwo.transform(matrix);
+    // subtract cube from mesh and callback
+    treeTwo.subtract(cubeTwo, function(mesh){
+        return mesh;
+    });
+    return treeTwo;
+}
+
+function shapeGeneratorEvaluate(params, callback){
+    var treeOne = sliceOne();
+    var treeTwo = sliceTwo();
+    treeOne.unite(treeTwo, function(mesh) {
+        return Solid.make(mesh);
+    });
 }
