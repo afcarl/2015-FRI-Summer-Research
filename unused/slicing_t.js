@@ -685,9 +685,7 @@ function sliceOne() {
     // change x coordinate [0] from -10 to -65
     var cubeOne = createCube(-40,-100,-20,cutSize);
     // subtract cube from mesh and callback
-    treeOne.subtract(cubeOne, function(mesh){
-        return mesh;
-    });
+    treeOne.subtract(cubeOne, function(){return treeOne;});
 }
 
 function sliceTwo() {
@@ -698,16 +696,13 @@ function sliceTwo() {
     matrix.translation([cutDistance, 0, 0]);
     treeTwo.transform(matrix);
     // subtract cube from mesh and callback
-    treeTwo.subtract(cubeTwo, function(mesh){
-        return mesh;
-    });
-    return treeTwo;
+    treeTwo.subtract(cubeTwo, function(){return treeTwo;});
 }
 
 function shapeGeneratorEvaluate(params, callback){
     var treeOne = sliceOne();
     var treeTwo = sliceTwo();
     treeOne.unite(treeTwo, function(mesh) {
-        return Solid.make(mesh);
+        callback(Solid.make(mesh));
     });
 }
