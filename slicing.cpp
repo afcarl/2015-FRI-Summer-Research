@@ -1,3 +1,7 @@
+// g++ -std=c++11 -O3 -L/usr/local/lib -I/usr/local/include/eigen3 -I/usr/local/include/libigl/include/ -I/usr/local/include/boost/ -I/usr/local/include/ slicing.cpp -lmpfr -lgmp -lCGAL -lboost_thread-mt -lboost_system-mt -o slicing
+
+
+
 #include <igl/readOBJ.h>
 #include <igl/writeOBJ.h>
 #include <igl/boolean/mesh_boolean.h>
@@ -291,6 +295,7 @@ double costFunction(const MatrixXd &V, const MatrixXi &F, double groundTol)
 
 int main(int argc, char *argv[])
 {
+
 	if(argc != 3)
 	{
 		cerr << "Usage: slicing (mesh .obj file) (cutting description .txt file)" << endl;
