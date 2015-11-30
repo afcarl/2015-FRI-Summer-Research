@@ -2,7 +2,7 @@ import subprocess
 import time
 from time import gmtime, strftime
 
-F_PATH = "./c.obj"
+F_PATH = "./t.obj"
 obj = open(F_PATH)
 
 # x, y, z data
@@ -32,7 +32,7 @@ print "y max = " + str(y_max)
 print "z min = " + str(z_min)
 print "z max = " + str(z_max)
 
-x_step = 0.1
+x_step = 0.01
 
 x_cut = x_min
 y_avg = (y_min + y_max)/2.0
@@ -52,8 +52,8 @@ while x_cut <= x_max:
 
 
 
-    # rename the cut files
-    subprocess.call(["mv", "./piece-0.obj", "./piece-0-"+str(x_cut)+".obj"])
-    subprocess.call(["mv", "./piece-1.obj", "./piece-1-"+str(x_cut)+".obj"])
+    # # rename the cut files
+    # subprocess.call(["mv", "./piece-0.obj", "./piece-0-"+str(x_cut)+".obj"])
+    # subprocess.call(["mv", "./piece-1.obj", "./piece-1-"+str(x_cut)+".obj"])
 
     x_cut += (x_max - x_min) * x_step
